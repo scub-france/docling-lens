@@ -1,0 +1,109 @@
+/* Design tokens — keep visual identity centralized so individual components
+ * stay declarative. The palette mirrors the maquette: warm-white background,
+ * deep ink for text, a single accent (emerald-ish green) for action /
+ * "completed" affordances, and warm yellow highlights for inline citations. */
+
+:root {
+  --bg: #fafaf7;
+  --surface: #ffffff;
+  --surface-2: #f4f3ef;
+  --border: #e6e4dd;
+  --border-strong: #d2cfc4;
+  --ink: #1c1b18;
+  --ink-2: #4a4944;
+  --ink-3: #7c7a72;
+  --accent: #1ea871;
+  --accent-soft: #d6f0e3;
+  --citation: #fde79a;
+  --citation-strong: #f6c945;
+  --shadow: 0 1px 2px rgba(28, 27, 24, 0.04), 0 8px 24px rgba(28, 27, 24, 0.06);
+  --radius: 6px;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif;
+  --serif: 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* All three workspace panes live in a CSS grid row capped at 100vh. Grid
+ * items default to `min-height: auto`, which prevents inner `overflow-y:
+ * auto` scrollers from kicking in — the pane grows to fit its content
+ * instead. Force shrink + clip so the per-pane `.body { overflow-y: auto }`
+ * containers actually scroll. */
+.pane {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Unified header height across the three panes. Without this, a pane
+ * containing only text in its head (CONVERSATION) renders shorter than
+ * one carrying buttons / tabs (REASONING TRACE, STRUCTURE), and the
+ * baseline of the labels drifts apart. */
+.pane > .pane-head {
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+button:hover {
+  background: var(--surface-2);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+button.primary:hover {
+  filter: brightness(1.05);
+  background: var(--accent);
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  outline: none;
+}
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.mono {
+  font-family: var(--mono);
+}

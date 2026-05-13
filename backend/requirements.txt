@@ -1,0 +1,15 @@
+fastapi>=0.115.0,<1.0.0
+uvicorn[standard]>=0.32.0,<1.0.0
+python-multipart>=0.0.12
+pydantic>=2.7,<3.0.0
+httpx>=0.27.0,<1.0.0
+
+# PDF → DoclingDocument conversion runs remotely on docling-serve over
+# HTTP (we don't bundle the docling library — torch + pypdfium2 + table
+# models are ~1 GB). Set DOCLING_SERVE_URL to enable /api/documents.
+#
+# Live reasoning gated by REASONING_ENABLED: docling-agent + mellea drive
+# the loop; docling-core deserializes the DoclingDocument the agent walks.
+docling-core>=2.0.0,<3.0.0
+docling-agent==0.1.0
+mellea==0.4.2
