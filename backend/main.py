@@ -95,13 +95,35 @@ def _build_pdf_converter() -> ServePdfConverter | None:
     )
 
 
+def _build_reasoning_runner(
+    provider: OllamaProvider | None, *, feature_on: bool
+) -> DoclingAgentReasoningRunner | None:
+    """Layer the per-agent FEATURE_RAG flag on top of the provider gate.
+    `feature_on=False` short-circuits the construction — the endpoint
+    responds 503 and the frontend hides the RAG pill on boot."""
+    if provider is None:
+        return None
+    if not feature_on:
+        logger.info("RAG agent disabled (FEATURE_RAG=false)")
+        return None
+    return DoclingAgentReasoningRunner(provider=provider)
+
+
+def _build_enrich_runner(
+    provider: OllamaProvider | None, *, feature_on: bool
+) -> DoclingAgentEnrichRunner | None:
+    """Same shape as `_build_reasoning_runner`, for the enrich agent."""
+    if provider is None:
+        return None
+    if not feature_on:
+        logger.info("Enrich agent disabled (FEATURE_ENRICH=false)")
+        return None
+    return DoclingAgentEnrichRunner(provider=provider)
+
+
 _provider = _build_ollama_provider()
-app.state.reasoning_runner = (
-    DoclingAgentReasoningRunner(provider=_provider) if _provider is not None else None
-)
-app.state.enrich_runner = (
-    DoclingAgentEnrichRunner(provider=_provider) if _provider is not None else None
-)
+app.state.reasoning_runner = _build_reasoning_runner(_provider, feature_on=settings.feature_rag)
+app.state.enrich_runner = _build_enrich_runner(_provider, feature_on=settings.feature_enrich)
 app.state.pdf_converter = _build_pdf_converter()
 # Publish per-request config on app.state so handlers don't import infra.settings.
 app.state.max_pdf_size_mb = settings.max_pdf_size_mb

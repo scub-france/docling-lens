@@ -38,7 +38,20 @@ class Settings:
         default_factory=lambda: _csv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
     )
 
+    # Global LLM-stack gate. When false, NO agent runner is wired (no Ollama
+    # provider built either) — useful for UI-only dev environments where the
+    # heavy docling-agent + mellea deps aren't installed. Off by default so
+    # the backend boots without surprises; flip to true in real envs.
     reasoning_enabled: bool = field(default_factory=lambda: _bool("REASONING_ENABLED", False))
+
+    # Per-agent feature flags — layered ON TOP of `reasoning_enabled`. Both
+    # default ON so a fresh `REASONING_ENABLED=true` deployment exposes
+    # every agent; opt-out by setting the corresponding flag to false.
+    # Adding a new agent (extract / write / edit / …): one more entry
+    # here + a one-line gate in main.py's wire-up.
+    feature_rag: bool = field(default_factory=lambda: _bool("FEATURE_RAG", True))
+    feature_enrich: bool = field(default_factory=lambda: _bool("FEATURE_ENRICH", True))
+
     llm_provider_type: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER_TYPE", "ollama"))
     ollama_host: str = field(
         default_factory=lambda: os.getenv("OLLAMA_HOST", "http://localhost:11434")

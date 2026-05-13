@@ -21,11 +21,17 @@ interface ModeOption {
   value: AppMode
   label: string
 }
-// Hardcoded for now — adding extract/write/edit will plug into this list.
-const MODES: readonly ModeOption[] = [
-  { value: 'rag', label: 'rag' },
-  { value: 'enrich', label: 'enrich' },
-]
+// Display labels — the store's `availableModes` decides which entries
+// actually render. Adding a new mode is two lines: one here + one in
+// `AppMode` / `ALL_MODES` upstream.
+const MODE_LABELS: Record<AppMode, string> = {
+  rag: 'rag',
+  enrich: 'enrich',
+}
+
+const visibleModes = computed<ModeOption[]>(() =>
+  appStore.availableModes.map((m: AppMode) => ({ value: m, label: MODE_LABELS[m] })),
+)
 
 function onNewRun(): void {
   // The doc store owns the document; each feature decides for itself
@@ -44,9 +50,14 @@ function onNewRun(): void {
     <nav class="breadcrumbs" aria-label="Document">
       <span class="crumb">{{ docLabel }}</span>
     </nav>
-    <div class="mode-toggle" role="tablist" aria-label="Agent mode">
+    <!--
+      Toggle is hidden when fewer than 2 modes are available — a single
+      pill is just visual noise. Endpoints still 503 cleanly if anything
+      hits a disabled agent regardless.
+    -->
+    <div v-if="visibleModes.length > 1" class="mode-toggle" role="tablist" aria-label="Agent mode">
       <button
-        v-for="m in MODES"
+        v-for="m in visibleModes"
         :key="m.value"
         role="tab"
         :aria-selected="appStore.mode === m.value"
@@ -56,6 +67,9 @@ function onNewRun(): void {
         {{ m.label }}
       </button>
     </div>
+    <span v-else-if="visibleModes.length === 1" class="mode-solo mono">
+      {{ visibleModes[0].label }}
+    </span>
     <div class="actions">
       <button class="primary" @click="onNewRun">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -109,6 +123,14 @@ function onNewRun(): void {
   background: var(--surface);
   color: var(--ink);
   box-shadow: 0 1px 2px rgba(28, 27, 24, 0.06);
+}
+.mode-solo {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  padding: 4px 10px;
+  border-radius: 4px;
 }
 .brand {
   display: flex;
