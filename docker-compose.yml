@@ -1,0 +1,61 @@
+# docking-lens — example single-image compose.
+#
+# Ollama and docling-serve stay OUTSIDE this stack. Two common setups:
+#
+#   1. Both running natively on the Docker host (macOS / Linux desktop):
+#      keep the `extra_hosts` block below — `host.docker.internal` resolves
+#      to the host's loopback. Default in this file.
+#
+#   2. Both running as separate containers in their own compose stacks:
+#      replace the URLs with the service names + put the containers on a
+#      shared external network (see commented `networks:` block).
+#
+# This file is NOT auto-loaded — copy to `docker-compose.override.yml` or
+# `docker-compose.prod.yml` and run `docker compose up`.
+
+services:
+  docling-lens:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docling-lens:latest
+    container_name: docling-lens
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      # --- Required ---
+      REASONING_ENABLED: "true"
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+      DOCLING_SERVE_URL: "http://host.docker.internal:5001"
+
+      # --- Optional ---
+      REASONING_MODEL_ID: "mistral-small3.2"
+      # CORS_ORIGINS only matters in dev (frontend on a different origin).
+      # In this image the SPA is same-origin → no CORS needed.
+      # FEATURE_RAG / FEATURE_ENRICH default to true; uncomment to opt out.
+      # FEATURE_RAG: "false"
+      # FEATURE_ENRICH: "false"
+      MAX_PDF_SIZE_MB: "25"
+
+    # Required so `host.docker.internal` resolves on Linux hosts; harmless on
+    # macOS/Windows where the alias is provided automatically.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - >-
+          python -c "import urllib.request; urllib.request.urlopen('http://localhost:8001/api/health', timeout=2).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# Uncomment if Ollama / docling-serve live in their own compose networks:
+#
+# networks:
+#   default:
+#     external: true
+#     name: ollama-stack

@@ -145,3 +145,30 @@ async def health() -> HealthResponse:
         enrich_available=enrich_runner is not None and enrich_runner.is_available,
         pdf_conversion_available=converter is not None and converter.is_available,
     )
+
+
+# ---------------------------------------------------------------------------
+# SPA mount — optional, controlled by `SPA_DIR`
+# ---------------------------------------------------------------------------
+#
+# When the env var points at a directory containing a built frontend (an
+# `index.html` plus its assets), FastAPI serves it as a static site at the
+# root path. API routes are already registered above and take precedence
+# over this mount, so `/api/*` keeps hitting handlers regardless.
+#
+# Order matters: this MUST be the last thing the app registers — `StaticFiles`
+# mounted at `/` would otherwise shadow any later route.
+#
+# In dev (npm run dev), `SPA_DIR` stays unset and the SPA is served by Vite
+# on a different port with `/api` proxied to this backend. In the prod
+# Docker image the frontend is baked into `/app/static` and `SPA_DIR=/app/static`.
+import os  # noqa: E402
+
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+_spa_dir = os.getenv("SPA_DIR", "")
+if _spa_dir and os.path.isdir(_spa_dir):
+    app.mount("/", StaticFiles(directory=_spa_dir, html=True), name="spa")
+    logger.info("Serving SPA from %s", _spa_dir)
+else:
+    logger.info("SPA mount skipped (SPA_DIR=%r is empty or not a directory)", _spa_dir)

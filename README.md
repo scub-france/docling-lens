@@ -68,7 +68,37 @@ See `backend/CLAUDE.md` and `frontend/CLAUDE.md` for the per-side conventions
 
 ## Running
 
-### Backend
+### Docker (single image, recommended)
+
+```bash
+docker build -t docling-lens:latest .
+
+docker run --rm -p 8001:8001 \
+  -e REASONING_ENABLED=true \
+  -e OLLAMA_HOST=http://host.docker.internal:11434 \
+  -e DOCLING_SERVE_URL=http://host.docker.internal:5001 \
+  --add-host=host.docker.internal:host-gateway \
+  docling-lens:latest
+```
+
+Open <http://localhost:8001>. FastAPI serves both the API and the SPA from
+the same origin.
+
+**What's in the image**: backend + frontend bundle + the full Python venv
+(CPU-only torch). No post-startup downloads. Ollama and docling-serve are
+expected to run **outside** the container — point at them via
+`OLLAMA_HOST` / `DOCLING_SERVE_URL`.
+
+A `docker-compose.yml` is included as a starter (host-loopback wiring +
+healthcheck). Adjust to your setup and `docker compose up`.
+
+Per-feature opt-outs are env vars at boot:
+- `FEATURE_RAG=false` — hides the RAG mode from the top-bar toggle
+- `FEATURE_ENRICH=false` — hides the Enrich mode
+
+### Local dev (hot reload)
+
+#### Backend
 
 ```bash
 cd backend
@@ -81,7 +111,7 @@ CORS_ORIGINS=http://localhost:5173 \
   .venv/bin/uvicorn main:app --reload --port 8001
 ```
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend

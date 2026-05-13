@@ -1,0 +1,38 @@
+# Build / dev artifacts — already in .gitignore but listed explicitly so a
+# fresh clone in CI doesn't accidentally COPY junk into a layer.
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.vite
+**/.DS_Store
+**/coverage
+
+# Local-only files
+**/.env
+**/.env.local
+**/*.log
+
+# Tests / dev configs — runtime image doesn't need them
+backend/tests
+backend/pytest.ini
+backend/requirements-test.txt
+backend/CLAUDE.md
+frontend/CLAUDE.md
+frontend/eslint.config.js
+frontend/.prettierrc
+frontend/**/*.test.ts
+
+# VCS + tooling
+.git
+.gitignore
+.github
+.claude
+.idea
+*.iml
+
+# Docs that stay on GitHub, not in the image
+docs
